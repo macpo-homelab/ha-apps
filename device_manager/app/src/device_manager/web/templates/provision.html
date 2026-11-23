@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import name_input, ip_input %}
+{% block title %}Neues Gerät – Device Manager{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Neues Gerät einrichten</h1></div>
+<p>Das Gerät muss bereits per Shelly-App oder Taster im WLAN sein. Der Assistent arbeitet diese Schritte nacheinander ab:</p>
+<ol class="steps" data-steps>
+  <li data-step="1">Übernehmen</li>
+  <li data-step="2">IP reservieren und neu starten</li>
+  <li data-step="3" data-option="update">Firmware aktualisieren</li>
+  <li data-step="4" data-option="defaults">Standardeinstellungen</li>
+  <li data-step="5" data-option="certificate">HTTPS-Zertifikat</li>
+</ol>
+
+<form hx-post="provision" hx-target="#msg" hx-disabled-elt="find button[type='submit']">
+  <div class="form-grid">
+    <fieldset class="panel">
+      <legend class="skip">Gerät</legend>
+      <h2>Gerät</h2>
+      <div class="fields">
+        {{ ip_input("host", "Aktuelle IP des Geräts", "192.168.1.50…", host, required=True) }}
+        {{ name_input('', domain) }}
+        {{ ip_input("ip", "Reservierte IP (leer = nächste freie)", "automatisch…") }}
+      </div>
+    </fieldset>
+    <fieldset class="panel">
+      <legend class="skip">Ablauf</legend>
+      <h2>Was soll passieren?</h2>
+      <div class="checks">
+        <label class="check"><input type="checkbox" name="update" value="true" checked data-step-toggle="3">
+          <span>Firmware aktualisieren</span></label>
+        <label class="field indent">Firmware-Kanal
+          <select name="stage">
+            <option value="stable" {% if default_stage == "stable" %}selected{% endif %}>stable</option>
+            <option value="beta" {% if default_stage == "beta" %}selected{% endif %}>beta</option>
+          </select>
+        </label>
+        <label class="check"><input type="checkbox" name="defaults" value="true" checked data-step-toggle="4">
+          <span>Standardeinstellungen setzen
+            <small class="hint">Name, Zeitzone {{ tz }}, Standort, NTP {{ ntp }}, Datumsformat, Eco-Modus, AP und Bluetooth aus, LED aus</small></span></label>
+        <label class="check"><input type="checkbox" name="certificate" value="true" checked data-step-toggle="5">
+          <span>HTTPS-Zertifikat installieren</span></label>
+      </div>
+    </fieldset>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="primary">Gerät einrichten</button>
+    <span class="hint">Dauert je nach Firmware-Update einige Minuten.</span>
+  </div>
+</form>
+<div id="msg" class="msg" aria-live="polite"></div>
+{% endblock %}

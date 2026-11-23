@@ -1,0 +1,77 @@
+configuration:
+  shelly_password:
+    name: Shelly-Master-Passwort
+    description: Daraus wird pro Gerät ein eigenes Passwort (Benutzer admin) abgeleitet und bei der Übernahme gesetzt. Geräte mit dem bisherigen gemeinsamen Passwort werden weiterhin akzeptiert.
+  device_networks:
+    name: Gerätenetze
+    description: CIDR-Netze, in denen Geräte übernommen werden dürfen (z. B. 192.168.10.0/24). Leer = alle privaten Adressen.
+  wifi_ssid:
+    name: WLAN-SSID
+    description: WLAN, in das Gen4-Zigbee-Geräte für Firmware-Updates kurzzeitig eingebucht werden.
+  wifi_password:
+    name: WLAN-Passwort
+  opnsense_url:
+    name: OPNsense-URL
+    description: z. B. https://opnsense.lan
+  opnsense_api_key:
+    name: OPNsense API-Key
+  opnsense_api_secret:
+    name: OPNsense API-Secret
+  opnsense_verify_tls:
+    name: OPNsense-Zertifikat prüfen
+  opnsense_ca_file:
+    name: CA-Datei für OPNsense
+    description: Optionaler Pfad zu einer PEM-Datei, z. B. /ssl/opnsense-ca.pem
+  ip_range_start:
+    name: IP-Bereich Start
+  ip_range_end:
+    name: IP-Bereich Ende
+  dns_domain:
+    name: DNS-Domain
+    description: Wird an den Hostnamen angehängt (Zertifikat-CN), z. B. home.lan
+  cert_ca_name:
+    name: Name der CA in OPNsense
+  cert_lifetime_days:
+    name: Zertifikatslaufzeit (Tage)
+  cert_key_location:
+    name: Speicherort privater Schlüssel
+    description: firewall = in OPNsense gespeichert, local = nur einmalig an den Manager ausgeliefert
+  default_firmware_stage:
+    name: Standard-Firmware-Kanal
+  z2m_base_topic:
+    name: Zigbee2MQTT Basis-Topic
+  mqtt_host:
+    name: MQTT-Host (optional)
+    description: Leer lassen, um den MQTT-Dienst von Home Assistant zu verwenden
+  mqtt_port:
+    name: MQTT-Port
+  mqtt_username:
+    name: MQTT-Benutzer
+  mqtt_password:
+    name: MQTT-Passwort
+  log_level:
+    name: Log-Level
+    description: "info: jeder Arbeitsschritt und Fehler mit Ursache. debug: zusätzlich jeder Aufruf an Shelly, OPNsense und Zigbee2MQTT (ohne Passwörter). Log-Datei: /data/logs/device_manager.log"
+  opnsense_reload_unbound:
+    name: Unbound nach Reservierung neu laden
+    description: "Macht den Hostnamen sofort per DNS auflösbar. Voraussetzung in OPNsense: Unbound registriert DHCP-Reservierungen, der API-Benutzer hat das Recht 'Services: Unbound DNS'."
+  firmware_reboot_wait:
+    name: Wartezeit auf Neustart nach Firmware-Update (s)
+    description: Startet das Gerät nach dem Update nicht von selbst neu, bittet die App nach dieser Zeit um einen manuellen Neustart.
+  firmware_poll_interval:
+    name: Abfrageintervall während des Firmware-Updates (s)
+  shelly_ntp_server:
+    name: NTP-Server für die Geräte
+    description: "Wird beim Einrichten gesetzt; der Button in der Geräteliste verteilt ihn auf alle Geräte. host oder host:port."
+  shelly_timezone:
+    name: Zeitzone der Geräte
+    description: "IANA-Name, z. B. Europe/Berlin"
+  shelly_latitude:
+    name: Breitengrad (für Sonnenauf-/-untergang)
+    description: "z. B. 52.52; leer = Standort am Gerät nicht ändern"
+  shelly_longitude:
+    name: Längengrad (für Sonnenauf-/-untergang)
+    description: "z. B. 13.40; leer = Standort am Gerät nicht ändern"
+  shelly_date_format:
+    name: Datumsformat der Geräte-Weboberfläche
+    description: "z. B. YYYY-MM-DD"

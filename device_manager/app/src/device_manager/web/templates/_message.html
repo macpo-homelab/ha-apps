@@ -1,0 +1,3 @@
+{% if error %}<p class="error">{{ error }}{% if stale %} <button type="button" class="link" data-reload>Ansicht neu laden</button>{% endif %}</p>{% endif %}
+{% if message %}<p class="ok">{{ message }}</p>{% endif %}
+{% if reload %}<script>setTimeout(function () { location.reload(); }, 800);</script>{% endif %}

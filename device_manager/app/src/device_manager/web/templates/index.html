@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <h1>Geräte <span class="count">({{ rows | length }})</span></h1>
+  <a class="button primary" href="provision">Neues Gerät einrichten</a>
+</div>
+
+<div class="toolbar">
+  <div class="group">
+    <button hx-post="refresh" hx-target="#msg" hx-disabled-elt="this">Status aller Geräte abfragen</button>
+  </div>
+  <div class="group" role="group" aria-labelledby="search-label">
+    <span class="group-label" id="search-label">Geräte im Netz suchen</span>
+    <button hx-post="discover" hx-vals='{"source": "lease"}' hx-target="#found" hx-disabled-elt="this">In OPNsense-Leases</button>
+    <button hx-post="discover" hx-vals='{"source": "mdns"}' hx-target="#found" hx-disabled-elt="this">Per mDNS</button>
+    {% if mqtt %}<button hx-post="zigbee/sync" hx-target="#msg" hx-disabled-elt="this">Zigbee2MQTT abgleichen</button>{% endif %}
+  </div>
+  <form class="group" hx-post="adopt" hx-target="#msg" hx-disabled-elt="find button">
+    <label class="field">Gerät per IP übernehmen
+      <input name="host" placeholder="192.168.1.50…" required inputmode="decimal" autocomplete="off" spellcheck="false">
+    </label>
+    <button type="submit">Übernehmen</button>
+  </form>
+</div>
+
+<div id="msg" class="msg" aria-live="polite"></div>
+<div id="found"></div>
+
+<div class="table-wrap">
+<table class="devices" id="devices">
+  <thead><tr>
+    <th class="led-cell"><span class="skip">Zustand</span></th><th>Name</th><th>Firmware</th><th class="wide">IP</th>
+    <th>Zertifikat</th><th class="wide">MAC</th>
+  </tr></thead>
+  <tbody>
+  {% for d, st, cert in rows %}
+    <tr>
+      <td class="led-cell"><span class="led {{ st.level }}" role="img" aria-label="{{ st.label }}"
+          title="{{ st.label }}{% if st.notes %}: {{ st.notes | join(', ') }}{% endif %}"></span></td>
+      <td>
+        <a href="devices/{{ d.key }}">{{ d.name or d.hostname or d.z2m_name or d.key }}</a>
+        <span class="sub">{{ d.app or d.model or "Modell unbekannt" }}{% if d.gen %} · Gen {{ d.gen }}{% endif %} · {{ "Zigbee" if d.connection == "zigbee" else "WLAN" }}{% if d.online == 0 %} · <span class="error-text">nicht erreichbar</span>{% endif %}</span>
+      </td>
+      <td class="nowrap">
+        {{ d.firmware or "–" }}
+        {% if st.update %}<span class="sub warn-text">Update {{ st.update }} verfügbar</span>{% endif %}
+      </td>
+      <td class="mono wide">{{ d.ip or "–" }}</td>
+      <td class="{{ 'warn-text' if cert.level == 'warn' else 'error-text' if cert.level == 'error' else '' }}">{{ cert.date if cert.level == "ok" else cert.label }}</td>
+      <td class="wide"><code>{{ d.mac or "–" }}</code></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6" class="empty">Noch keine Geräte. Suche oben nach Geräten im Netz, übernimm eins per IP
+      oder <a href="provision">richte ein neues Gerät ein</a>.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="footnote">
+  {% if last_checked %}Status zuletzt abgefragt: <time datetime="{{ last_checked }}" data-local>{{ last_checked }}</time>.
+  Updates beziehen sich auf den Kanal {{ stage }}.{% else %}Status noch nicht abgefragt – „Status aller Geräte abfragen“ prüft Erreichbarkeit, Firmware und Zertifikate.{% endif %}
+</p>
+
+<section class="panel maintenance" aria-labelledby="maint-title">
+  <div>
+    <h2 id="maint-title">Wartung</h2>
+    <p class="hint">Schreibt den NTP-Server <span class="mono">{{ ntp }}</span> auf alle per WLAN erreichbaren Geräte.</p>
+  </div>
+  <button hx-post="ntp/distribute" hx-target="#msg" hx-disabled-elt="this"
+          hx-confirm="NTP-Server {{ ntp }} auf alle per WLAN erreichbaren Geräte schreiben?">NTP-Server an alle Geräte verteilen</button>
+</section>
+{% endblock %}

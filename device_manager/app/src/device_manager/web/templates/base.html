@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e6e8e3" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1d1f" media="(prefers-color-scheme: dark)">
+  <base href="{{ base }}">
+  <title>{% block title %}Device Manager{% endblock %}</title>
+  <link rel="preload" href="static/fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="static/style.css?v={{ asset_version }}">
+  <script src="static/htmx.min.js"></script>
+  <script src="static/forms.js?v={{ asset_version }}" defer></script>
+</head>
+<body>
+  <a class="skip" href="{{ request.url.path[1:] }}{{ '?' ~ request.url.query if request.url.query }}#content">Zum Inhalt springen</a>
+  <header class="top">
+    <span class="brand" translate="no">Device Manager</span>
+    <nav aria-label="Hauptnavigation">
+      <a href="./" {% if active == "devices" %}aria-current="page"{% endif %}>Geräte</a>
+      <a href="provision" {% if active == "provision" %}aria-current="page"{% endif %}>Neues Gerät</a>
+      <a href="log" {% if active == "log" %}aria-current="page"{% endif %}>Protokoll</a>
+    </nav>
+  </header>
+  <main id="content">{% block content %}{% endblock %}</main>
+</body>
+</html>

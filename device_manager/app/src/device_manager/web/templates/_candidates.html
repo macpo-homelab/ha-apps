@@ -1,0 +1,24 @@
+<section class="panel found" aria-labelledby="found-title">
+  <div class="panel-head">
+    <h2 id="found-title">Gefundene Geräte ({{ candidates | length }})</h2>
+    <button type="button" class="link" data-dismiss="#found">Liste schließen</button>
+  </div>
+  <table>
+    <thead><tr><th>Name</th><th>IP</th><th class="wide">MAC</th><th class="wide">Quelle</th><th></th></tr></thead>
+    <tbody>
+    {% for c in candidates %}
+      <tr>
+        <td>{{ c.name }}</td><td class="mono">{{ c.ip }}</td><td class="wide"><code>{{ c.mac or "–" }}</code></td>
+        <td class="wide">{{ "OPNsense-Lease" if c.source == "lease" else "mDNS" }}</td>
+        <td>{% if c.known %}<span class="muted">schon im Inventar</span>{% else %}
+          <div class="fields">
+            <a class="button primary" href="provision?host={{ c.ip }}">Mit Assistent einrichten</a>
+            <form hx-post="adopt" hx-target="#msg" hx-disabled-elt="find button"><input type="hidden" name="host" value="{{ c.ip }}"><button type="submit">Nur übernehmen</button></form>
+          </div>{% endif %}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5" class="empty">Keine Shelly-Geräte gefunden. Ist das Gerät im WLAN und eingeschaltet?</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>

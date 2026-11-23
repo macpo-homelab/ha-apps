@@ -1,0 +1,20 @@
+<div id="fw-info" data-fw-info data-checked="{{ 'yes' if error is none else 'no' }}"
+     data-stable="{{ updates.get('stable', '') }}" data-beta="{{ updates.get('beta', '') }}">
+  {% if error %}
+  <p class="error">Installiert: {{ installed or "unbekannt" }}. Verfügbare Versionen konnten nicht abgefragt werden: {{ error }}</p>
+  {% else %}
+  <dl class="facts">
+    <dt>Installiert</dt><dd>{{ installed }}</dd>
+    {% for stage in ("stable", "beta") %}
+    <dt>Kanal {{ stage }}</dt>
+    <dd>
+      {% if updates.get(stage) %}<span class="warn-text">{{ updates[stage] }} verfügbar</span>
+        {%- if stage == "stable" and prerelease(updates[stage]) %} <span class="hint">(Vorabversion)</span>{% endif %}
+      {% else %}<span class="muted">keine neuere Version</span>{% endif %}
+    </dd>
+    {% endfor %}
+  </dl>
+  <p class="hint">„Aktualisieren“ installiert die Version des gewählten Kanals. Startet das Gerät danach nicht von selbst neu,
+    bittet der Ablauf um eine Bestätigung.</p>
+  {% endif %}
+</div>

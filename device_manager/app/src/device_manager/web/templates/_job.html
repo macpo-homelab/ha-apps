@@ -1,0 +1,24 @@
+<div class="job {{ job.status }}" id="job-{{ job.id }}" data-job data-status="{{ job.status }}" data-step="{{ job.step or '' }}"
+     {% if not job.done %}hx-get="jobs/{{ job.id }}" hx-trigger="every 1s" hx-swap="outerHTML"{% endif %}>
+  <div class="job-title">
+    <span class="led {{ 'ok' if job.status == 'ok' else 'error' if job.status == 'error' else 'warn' }}" aria-hidden="true"></span>
+    <strong>{{ job.title }}</strong> –
+    {% if job.status == "running" %}läuft…{% elif job.status == "ok" %}erfolgreich{% else %}Fehler{% endif %}
+  </div>
+  {% if job.status == "running" and job.step %}<div class="step">Aktueller Schritt: {{ job.step }}</div>{% endif %}
+  {% if job.action and not job.done %}
+  <div class="action-required">
+    <p><strong>Aktion erforderlich:</strong> {{ job.action.message }}</p>
+    <button class="primary" hx-post="jobs/{{ job.id }}/action" hx-target="#job-{{ job.id }}" hx-swap="outerHTML" hx-disabled-elt="this"
+            hx-confirm="Gerät jetzt wirklich neu starten? Nur bestätigen, wenn das Update abgeschlossen ist.">{{ job.action.label }}</button>
+  </div>
+  {% endif %}
+  {% if job.messages %}<ul>{% for m in job.messages %}<li>{{ m }}</li>{% endfor %}</ul>{% endif %}
+  {% if job.error %}
+  <div class="error">
+    {% if job.step %}<p><strong>Fehler im Schritt „{{ job.step }}“:</strong></p>{% endif %}
+    <p>{{ job.error }}</p>
+    {% if job.error_detail %}<details><summary>Details</summary><code>{{ job.error_detail }}</code></details>{% endif %}
+  </div>
+  {% endif %}
+</div>

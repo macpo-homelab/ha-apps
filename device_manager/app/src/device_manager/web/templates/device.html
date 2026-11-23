@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% from "_macros.html" import name_input, ip_input %}
+{% block title %}{{ device.name or device.hostname or device.z2m_name or device.key }} – Device Manager{% endblock %}
+{% block content %}
+{% set wifi = device.connection != "zigbee" %}
+<a class="back" href="./">Zurück zur Geräteliste</a>
+<div class="page-head">
+  <h1>{{ device.name or device.hostname or device.z2m_name or device.key }}</h1>
+  <span class="state"><span class="led {{ state.level }}" aria-hidden="true"></span>{{ state.label }}{% if state.notes and state.level != "error" %}<span class="muted">· {{ state.notes | join(", ") }}</span>{% endif %}</span>
+  {% if wifi %}<button hx-post="devices/{{ device.key }}/refresh" hx-target="#msg" hx-disabled-elt="this">Status abfragen</button>{% endif %}
+</div>
+<div id="msg" class="msg" aria-live="polite"></div>
+
+<div class="device-layout">
+  <aside class="panel" aria-labelledby="facts-title">
+    <h2 id="facts-title">Steckbrief</h2>
+    <dl class="facts">
+      <dt>Modell</dt><dd>{{ device.app or "" }} {{ device.model or "" }} (Gen{{ device.gen or "?" }})</dd>
+      <dt>Firmware</dt><dd>{{ device.firmware or "unbekannt" }}</dd>
+      <dt>MAC</dt><dd><code>{{ device.mac or "unbekannt" }}</code></dd>
+      <dt>IP</dt><dd class="mono">{{ device.ip or "–" }}</dd>
+      <dt>DNS-Name</dt><dd class="mono">{{ device.hostname or "–" }}{% if device.hostname and domain %}.{{ domain }}{% endif %}</dd>
+      <dt>Verbindung</dt><dd>{{ "Zigbee (" ~ device.z2m_name ~ ")" if not wifi else "WLAN" }}</dd>
+      <dt>Zertifikat</dt><dd class="{{ 'warn-text' if cert.level == 'warn' else 'error-text' if cert.level == 'error' else '' }}">{{ cert.label }}</dd>
+      <dt>Passwort</dt>
+      <dd class="inline-action" id="pw">
+        <span>{{ {"device": "gerätespezifisch", "shared": "gemeinsam (Altbestand)", "none": "keins"}.get(device.auth_mode, "unbekannt") }}</span>
+        {% if device.auth_mode == "device" %}
+        <button class="link" hx-post="devices/{{ device.key }}/password" hx-target="#pw" hx-swap="innerHTML">Passwort anzeigen</button>
+        {% elif device.auth_mode == "shared" %}
+        <button class="link" hx-post="devices/{{ device.key }}/rotate-password" hx-target="#msg" hx-disabled-elt="this"
+                hx-confirm="Gerätespezifisches Passwort auf dem Gerät setzen?">Auf eigenes Passwort umstellen</button>
+        {% endif %}
+      </dd>
+      <dt>Abgefragt</dt><dd>{% if device.checked_at %}<time datetime="{{ device.checked_at }}" data-local>{{ device.checked_at }}</time>{% else %}noch nie{% endif %}</dd>
+    </dl>
+  </aside>
+
+  <div>
+    <section class="panel" aria-label="Aufgaben">
+      <div class="task">
+        <h3>Firmware</h3>
+        {% if wifi and device.ip %}
+        <div id="fw-info" hx-get="devices/{{ device.key }}/firmware-info" hx-trigger="load" hx-swap="outerHTML">
+          <p class="hint">Installiert: {{ device.firmware or "unbekannt" }} – prüfe verfügbare Versionen…</p>
+        </div>
+        {% else %}
+        <div id="fw-info">
+          <p class="hint">Installiert: {{ device.firmware or "unbekannt" }}.
+          {% if not wifi %}Verfügbare Versionen sind erst bekannt, wenn das WLAN aktiv ist – der Ablauf prüft sie
+          und aktualisiert nur, wenn im gewählten Kanal eine neuere Version vorhanden ist.{% else %}IP-Adresse unbekannt.{% endif %}</p>
+        </div>
+        {% endif %}
+        <form class="fields" hx-post="devices/{{ device.key }}/firmware" hx-target="#msg" hx-disabled-elt="find button">
+          <label class="field">Kanal
+            <select name="stage" data-fw-select>
+              <option value="stable" {% if default_stage == "stable" %}selected{% endif %}>stable</option>
+              <option value="beta" {% if default_stage == "beta" %}selected{% endif %}>beta</option>
+            </select>
+          </label>
+          <button type="submit" class="primary" data-fw-button>{{ "WLAN aktivieren, aktualisieren, WLAN deaktivieren" if not wifi else "Aktualisieren" }}</button>
+        </form>
+      </div>
+
+      {% if wifi %}
+      <div class="task">
+        <h3>Name und IP-Reservierung</h3>
+        <p class="hint">Reserviert die IP in OPNsense/Kea unter diesem Namen. Leere IP = nächste freie Adresse.</p>
+        <form class="fields" hx-post="devices/{{ device.key }}/reserve" hx-target="#msg" hx-disabled-elt="find button">
+          {{ name_input(device.name or device.hostname or '', domain, id="dev-name") }}
+          {{ ip_input("ip", "IP-Adresse", "automatisch…") }}
+          <label class="check"><input type="checkbox" name="apply" value="true" checked> Sofort anwenden</label>
+          <button type="submit">Reservieren</button>
+        </form>
+      </div>
+
+      <div class="task">
+        <h3>HTTPS-Zertifikat</h3>
+        <p class="hint">Erstellt in OPNsense ein Zertifikat für den Namen oben (DNS-Name in Kleinbuchstaben) und
+          installiert es auf dem Gerät. Das Gerät startet danach neu.</p>
+        <button hx-post="devices/{{ device.key }}/certificate" hx-include="#dev-name" hx-target="#msg"
+                hx-disabled-elt="this">{{ "Zertifikat erneuern" if device.cert_not_after else "Zertifikat erstellen und installieren" }}</button>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="panel" aria-labelledby="log-title">
+      <div class="panel-head">
+        <h2 id="log-title">Letzte Aktionen</h2>
+        <a href="log?device={{ device.key | urlencode }}">Ganzes Protokoll des Geräts</a>
+      </div>
+      {% with compact = True %}{% include "_actions.html" %}{% endwith %}
+    </section>
+
+    <div class="remove">
+      <button class="danger-link" hx-post="devices/{{ device.key }}/delete"
+              hx-confirm="Gerät aus dem Inventar entfernen? Am Gerät und in OPNsense ändert sich nichts.">Aus Inventar entfernen</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

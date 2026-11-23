@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Protokoll – Device Manager{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Protokoll{% if device %}: {{ device.name or device.hostname or device.z2m_name or device.key }}{% endif %}</h1>
+  {% if device_key %}<a href="log">Alle Geräte anzeigen</a>{% endif %}
+</div>
+{% include "_actions.html" %}
+{% endblock %}

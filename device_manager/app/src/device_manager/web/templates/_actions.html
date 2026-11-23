@@ -1,0 +1,24 @@
+<div class="table-wrap">
+<table class="log">
+  <thead><tr>
+    <th class="led-cell"><span class="skip">Ergebnis</span></th><th>Zeit</th>
+    {% if not compact %}<th>Gerät</th>{% endif %}<th>Aktion</th><th class="wide">Meldung</th>
+  </tr></thead>
+  <tbody>
+  {% for e in entries %}
+    <tr>
+      <td class="led-cell"><span class="led {{ 'ok' if e.ok else 'error' }}" role="img" aria-label="{{ 'erfolgreich' if e.ok else 'Fehler' }}"></span></td>
+      <td class="when"><time datetime="{{ e.ts }}" data-local>{{ e.ts }}</time></td>
+      {% if not compact %}<td>{% if e.known %}<a href="devices/{{ e.device_key }}">{{ e.device_name }}</a>{% else %}{{ e.device_name or "–" }}{% endif %}</td>{% endif %}
+      <td>{{ e.action }}</td>
+      <td class="message wide {{ '' if e.ok else 'error-text' }}">
+        {{ e.short }}
+        {% if e.detail %}<details><summary>Details</summary><p>{{ e.detail }}</p></details>{% endif %}
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="5" class="empty">Noch keine Einträge.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>

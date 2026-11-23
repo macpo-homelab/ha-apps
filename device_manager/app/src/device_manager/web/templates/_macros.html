@@ -1,0 +1,15 @@
+{% macro name_input(value="", domain="", id="") -%}
+<label class="field">Name (A–Z, a–z, 0–9 und Bindestrich)
+  <input name="name" value="{{ value }}" required maxlength="63" autocomplete="off" spellcheck="false"
+         {% if id %}id="{{ id }}" {% endif %}placeholder="z. B. Kueche-Licht…" data-hostname
+         pattern="[A-Za-z0-9]([A-Za-z0-9\-]{0,61}[A-Za-z0-9])?"
+         title="Nur Buchstaben, Ziffern und Bindestrich, keine Umlaute, Leerzeichen oder Punkte, ohne Domain, z. B. Kueche-Licht. Wird als Gerätename und in der DHCP-Reservierung verwendet; der DNS-Hostname ist der Name in Kleinbuchstaben.">
+</label>
+{%- endmacro %}
+
+{% macro ip_input(name, label, placeholder, value="", required=False) -%}
+<label class="field">{{ label }}
+  <input name="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}" inputmode="decimal"
+         autocomplete="off" spellcheck="false"{% if required %} required{% endif %}>
+</label>
+{%- endmacro %}
